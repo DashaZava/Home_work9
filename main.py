@@ -31,8 +31,6 @@ def show_phone_book(_):
 def show_contact(args):
     return phone_book.get(args[0], "Contact not found")
 
-def print_answer(txt='How can I help you?'):
-    print(txt)
 
 OPERATIONS = [
     'add',
