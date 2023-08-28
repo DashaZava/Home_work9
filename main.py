@@ -28,10 +28,6 @@ def bot_assistant():
             return print_answer(f"{exit_answer[3].capitalize()}!")
 
 
-def print_answer(txt='How can I help you?'):
-    print(txt)
-
-
 def input_error(func):
     def inner(s):
         try:
