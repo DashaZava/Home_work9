@@ -1,35 +1,79 @@
-def bot_assistant(answer):
-    command, *args = answer.split(' ')
-    handler = command_handlers.get(command)
-    if handler:
-        return handler(args)
-    else:
-        return "Sorry, don't know this command. Try again."
+def bot_assistant():
+    while True:
+        try:
+            answer = input('==> ').lower().strip()
+            command, *args = answer.split(' ')
+            if answer in exit_answer:
+                return print_answer(f"{exit_answer[3].capitalize()}!")
+            elif answer.startswith(OPERATIONS[0]):
+                new_contact = add_contact(args)
+                if new_contact:
+                    print_answer(new_contact)
+                else:
+                    pass
+            elif answer.startswith(OPERATIONS[1]):
+                update_contact = change_contact(args)
+                print_answer(update_contact)
+            elif answer.startswith(OPERATIONS[2]):
+                contact = show_contact(args)
+                print_answer(contact)
+            elif answer.startswith(OPERATIONS[3]):
+                print_answer()
+            elif answer.startswith(OPERATIONS[4]):
+                book = show_phone_book(answer)
+                print_answer(book)
+            else:
+                print_answer("Sorry, don't know this command. Try again.")
+        except KeyboardInterrupt:
+            return print_answer(f"{exit_answer[3].capitalize()}!")
 
+
+def print_answer(txt='How can I help you?'):
+    print(txt)
+
+
+def input_error(func):
+    def inner(s):
+        try:
+            return func(s)
+        except KeyError:
+            print_answer('Write correct value:')
+        except ValueError:
+            print_answer('Write correct value:')
+        except IndexError:
+            print_answer('Write correct value:')
+
+    return inner
+
+
+@input_error
 def add_contact(args):
-    if len(args) != 2:
-        return "Write correct value: name phone"
-    phone_book[args[0]] = args[1]
+    phone_book.update({args[0]: args[1]})
     return f'Contact > {args[0].capitalize()} has been added'
 
-def change_contact(args):
-    if len(args) != 2:
-        return "Write correct value: name phone"
-    if args[0] in phone_book:
-        new_phone = input('New phone number =>> ')
-        phone_book[args[0]] = new_phone
-        return f'Contact > {args[0].capitalize()} has been updated'
-    else:
-        return f"Sorry, {args[0].capitalize()} can't be found"
 
+@input_error
+def change_contact(args):
+    if phone_book.get(args[0]):
+        answer = input('new phone number =>> ')
+        phone_book.update({args[0]: answer})
+        return f'Contact > {args[0].capitalize()} has been update'
+    else:
+        return f"Sorry,{args[0].capitalize()} can't find"
+
+
+@input_error
 def show_phone_book(_):
     phoneBook = ''
-    for name, phone in phone_book.items():
-        phoneBook += f'| {name}: {phone}\n'
+    for k, v in phone_book.items():
+        phoneBook += '| {name}: {value}'.format(name=k, value=v)
+
     return phoneBook
 
+
+@input_error
 def show_contact(args):
-    return phone_book.get(args[0], "Contact not found")
+    return f'{phone_book.get(args[0])}'
 
 
 OPERATIONS = [
@@ -42,23 +86,6 @@ OPERATIONS = [
 exit_answer = ['.', 'close', 'exit', 'good bye']
 phone_book = {}
 
-command_handlers = {
-    OPERATIONS[0]: add_contact,
-    OPERATIONS[1]: change_contact,
-    OPERATIONS[2]: show_contact,
-    OPERATIONS[3]: lambda _: "",  # Empty function
-    OPERATIONS[4]: show_phone_book
-}
-
-def main():
-    while True:
-        try:
-            answer = input('==> ').lower().strip()
-            response = bot_assistant(answer)
-            print_answer(response)
-        except KeyboardInterrupt:
-            print_answer(f"{exit_answer[3].capitalize()}!")
-            break
-
 if __name__ == '__main__':
+    bot_assistant()n__':
     main()
