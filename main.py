@@ -1,86 +1,120 @@
-def bot_assistant():
-    while True:
-        try:
-            answer = input('==> ').lower().strip()
-            command, *args = answer.split(' ')
-            if answer in exit_answer:
-                return print_answer(f"{exit_answer[3].capitalize()}!")
-            elif answer.startswith(OPERATIONS[0]):
-                new_contact = add_contact(args)
-                if new_contact:
-                    print_answer(new_contact)
-                else:
-                    pass
-            elif answer.startswith(OPERATIONS[1]):
-                update_contact = change_contact(args)
-                print_answer(update_contact)
-            elif answer.startswith(OPERATIONS[2]):
-                contact = show_contact(args)
-                print_answer(contact)
-            elif answer.startswith(OPERATIONS[3]):
-                print_answer()
-            elif answer.startswith(OPERATIONS[4]):
-                book = show_phone_book(answer)
-                print_answer(book)
-            else:
-                print_answer("Sorry, don't know this command. Try again.")
-        except KeyboardInterrupt:
-            return print_answer(f"{exit_answer[3].capitalize()}!")
+import sys
 
+CONTACTS_DICT = {}
+
+def parse(user_input):
+    """
+    This function parse user input into command and arguments
+    :param user_input: user input -> str
+    :return: command -> str, args -> list
+    """
+    user_input_list = user_input.split(' ')
+    command = user_input_list[0]
+    args = user_input_list[1:]
+    return (command, args)
 
 def input_error(func):
-    def inner(s):
+    """
+    This is a decorator function that catches errors that may occur when calling a function given as a parameter
+    :param func -> function
+    :return func if no error, str if there's an error
+    """
+    def inner(*args):
         try:
-            return func(s)
+            return func(*args)
         except KeyError:
-            print_answer('Write correct value:')
+            return 'The name is not in contacts. Enter user name please'
         except ValueError:
-            print_answer('Write correct value:')
+            return 'ValueError: Give me name and phone please'
         except IndexError:
-            print_answer('Write correct value:')
-
+            return 'IndexError: Give me name and phone please'
+        except TypeError:
+            return 'You entered invalid numbers of arguments for this command'
     return inner
 
+@input_error
+def add_contact(name, phone):
+    """
+    This function add the name with the phone in parameters into the CONTACTS_DICT
+    :param name -> str
+           phone -> str
+    :return str
+    """
+    CONTACTS_DICT[name] = phone
+    return f'Contact {name}: {phone} successfully added'
 
 @input_error
-def add_contact(args):
-    phone_book.update({args[0]: args[1]})
-    return f'Contact > {args[0].capitalize()} has been added'
-
-
-@input_error
-def change_contact(args):
-    if phone_book.get(args[0]):
-        answer = input('new phone number =>> ')
-        phone_book.update({args[0]: answer})
-        return f'Contact > {args[0].capitalize()} has been update'
-    else:
-        return f"Sorry,{args[0].capitalize()} can't find"
-
+def change_contact(name, phone):
+    """
+    This function change the phone for contact with the name that are given as parameters in the CONTACTS_DICT
+    :param name -> str
+           phone -> str
+    :return str
+    """
+    CONTACTS_DICT.update({name: phone})
+    return f'Contact {name}: {phone} successfully changed'
 
 @input_error
-def show_phone_book(_):
-    phoneBook = ''
-    for k, v in phone_book.items():
-        phoneBook += '| {name}: {value}'.format(name=k, value=v)
+def get_phone(name):
+    """
+    This function change the phone for contact with the name that are given as parameters in the CONTACTS_DICT
+    :param name -> str
+    :return phone -> str
+    """
+    phone = CONTACTS_DICT[name]
+    return f'For {name} the phone is {phone}'
 
-    return phoneBook
+def show_all():
+    """
+    This function returns all contact from the CONTACTS_DICT
+    :param: None
+    :return: phone_book -> str
+    """
+    phone_book = ''
+    for name, contact in CONTACTS_DICT.items():
+        phone_book += f'{name} : {contact}\n'
+    return phone_book
 
+def greeting():
+    return 'How can I help you?'
 
-@input_error
-def show_contact(args):
-    return f'{phone_book.get(args[0])}'
+def end():
+    return 'Good bye!'
 
+def main():
+    """
+    This function implements all the logic of interaction with the user, all 'print' and 'input' takes place here
+    :param: None
+    :return: None
+    """
+    handler_commands = {'hello': greeting,
+                        'hi': greeting,
+                        'add': add_contact,
+                        'change': change_contact,
+                        'phone': get_phone,
+                        'show all': show_all,
+                        '.': end,
+                        'good bye': end,
+                        'close': end,
+                        'exit': end}
 
-OPERATIONS = [
-    'add',
-    'change',
-    'phone',
-    'hello',
-    'show all'
-]
-exit_answer = ['.', 'close', 'exit', 'good bye']
-phone_book = {}
+    while True:
+        user_input = input('>>>:')
+        if user_input.lower() in handler_commands.keys():
+            output = handler_commands[user_input.lower()]()
+            print(output)
+            if output == 'Good bye!':
+                sys.exit()
+        else:
+            command, args = parse(user_input.lower())
+            if command in handler_commands.keys():
+                print(handler_commands[command](*args))
+            else:
+                print(
+                    "You entered an invalid command, please enter one of the next commands: "
+                    "'hello', 'hi', 'show all', 'add', 'change', 'phone', '.', 'good bye', 'close', 'exit'")
+
 
 if __name__ == '__main__':
-    bot_assistant()
+    main()
+   
